@@ -5,50 +5,58 @@
     <Configurations>Debug;Release</Configurations>
     <LangVersion>latestmajor</LangVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <!-- Override these properties to use an installed game instead of local staging. -->
+    <LocalDependenciesDir Condition="'$(LocalDependenciesDir)' == ''">$(MSBuildProjectDirectory)/../.local-dependencies</LocalDependenciesDir>
+    <SubnauticaManagedDir Condition="'$(SubnauticaManagedDir)' == ''">$(LocalDependenciesDir)/managed</SubnauticaManagedDir>
+    <BepInExCoreDir Condition="'$(BepInExCoreDir)' == ''">$(LocalDependenciesDir)/bepinex/core</BepInExCoreDir>
   </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
 
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>$(BepInExCoreDir)/0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\BepInEx\core\BepInEx.dll</HintPath>
+      <HintPath>$(BepInExCoreDir)/BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx.Harmony">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\BepInEx\core\BepInEx.Harmony.dll</HintPath>
+      <HintPath>$(BepInExCoreDir)/BepInEx.Harmony.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx.Preloader">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\BepInEx\core\BepInEx.Preloader.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>special\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(BepInExCoreDir)/BepInEx.Preloader.dll</HintPath>
     </Reference>
     <Reference Include="PlatformIODefault">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\PlatformIODefault.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/PlatformIODefault.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Addressables">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\Unity.Addressables.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/Unity.Addressables.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>E:\SteamLibrary\SteamApps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>$(SubnauticaManagedDir)/UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -57,11 +65,35 @@
   </ItemGroup>
 
   <ItemGroup>
+    <RequiredBuildDependency Include="$(BepInExCoreDir)/0Harmony.dll" />
+    <RequiredBuildDependency Include="$(BepInExCoreDir)/BepInEx.dll" />
+    <RequiredBuildDependency Include="$(BepInExCoreDir)/BepInEx.Harmony.dll" />
+    <RequiredBuildDependency Include="$(BepInExCoreDir)/BepInEx.Preloader.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/Assembly-CSharp.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/Assembly-CSharp-firstpass.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/PlatformIODefault.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/Unity.Addressables.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/UnityEngine.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/UnityEngine.CoreModule.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/UnityEngine.IMGUIModule.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/UnityEngine.InputLegacyModule.dll" />
+    <RequiredBuildDependency Include="$(SubnauticaManagedDir)/UnityEngine.UI.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="mod.json" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="COPY $(TargetPath) E:\SteamLibrary\steamapps\common\Subnautica\BepInEx\plugins\Archipelago\Archipelago.dll&#xD;&#xA;&#xD;&#xA;COPY $(TargetDir)Archipelago.MultiClient.Net.dll E:\SteamLibrary\steamapps\common\Subnautica\BepInEx\plugins\Archipelago\Archipelago.MultiClient.Net.dll" />
+  <Target Name="ValidateBuildDependencies" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('%(RequiredBuildDependency.Identity)')"
+           Text="Missing build dependency: %(RequiredBuildDependency.Identity). Run scripts/setup-local-deps.sh with a Managed.zip archive, or override SubnauticaManagedDir and BepInExCoreDir." />
+  </Target>
+
+  <Target Name="InstallToGame" AfterTargets="Build" Condition="'$(ModInstallDir)' != ''">
+    <MakeDir Directories="$(ModInstallDir)" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)Archipelago.MultiClient.Net.dll"
+          DestinationFolder="$(ModInstallDir)"
+          SkipUnchangedFiles="true" />
   </Target>
 
 </Project>
