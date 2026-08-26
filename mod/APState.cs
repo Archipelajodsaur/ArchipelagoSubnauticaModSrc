@@ -366,6 +366,7 @@ namespace Archipelago
         {
             Authenticated = false;
             state = State.Menu;
+            PositionPublisher.Reset();
 
             if (Session != null)
             {

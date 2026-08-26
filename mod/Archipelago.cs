@@ -749,6 +749,8 @@ namespace Archipelago
             const int dequeueCount = 2;
             const float dequeueTime = 3.0f;
 
+            PositionPublisher.PublishIfNeeded();
+
             if (APState.unlock_dequeue_timeout > 0.0f) APState.unlock_dequeue_timeout -= Time.deltaTime;
             if (APState.message_dequeue_timeout > 0.0f) APState.message_dequeue_timeout -= Time.deltaTime;
 
