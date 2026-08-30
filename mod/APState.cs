@@ -364,6 +364,8 @@ namespace Archipelago
 
         public static void Disconnect()
         {
+            var unpublishTask = PositionPublisher.Unpublish();
+
             Authenticated = false;
             state = State.Menu;
             PositionPublisher.Reset();
@@ -377,6 +379,7 @@ namespace Archipelago
                     {
                         try
                         {
+                            unpublishTask.Wait();
                             socket.DisconnectAsync();
                         }
                         catch
