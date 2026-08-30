@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Threading;
 using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 
 namespace Archipelago
@@ -12,11 +13,19 @@ namespace Archipelago
     {
         public const string Version = "1.9.3";
         public static bool Zero;
+        private static ConfigEntry<string> positionReporterId;
+        private static ConfigEntry<string> positionReporterLabel;
+
+        public static string PositionReporterId => positionReporterId.Value;
+        public static string PositionReporterLabel => positionReporterLabel.Value;
+
         // Early Reflection to not fish for things later:
         public static Type SubnauticaEscapePod;
 
         private void Awake()
         {
+            InitializePositionTrackingConfig();
+
             var harmony = new Harmony("Archipelago");
             Logging.Initialize();
             ArchipelagoData.Init();
@@ -51,6 +60,26 @@ namespace Archipelago
             Logging.Log($"Plugin Archipelago (" + Version + ") for Server (" 
                         + APState.AP_VERSION[0] + "." + APState.AP_VERSION[1] + "." + APState.AP_VERSION[2] + 
                         ") is loaded!", ingame:false);
+        }
+
+        private void InitializePositionTrackingConfig()
+        {
+            positionReporterId = Config.Bind(
+                "Position Tracking",
+                "ReporterId",
+                "",
+                "Stable anonymous ID for this mod installation. Generated automatically when blank.");
+            positionReporterLabel = Config.Bind(
+                "Position Tracking",
+                "ReporterLabel",
+                "",
+                "Optional marker label. When blank, trackers show the Archipelago player name.");
+
+            if (string.IsNullOrWhiteSpace(positionReporterId.Value))
+            {
+                positionReporterId.Value = Guid.NewGuid().ToString("N");
+                Config.Save();
+            }
         }
 
         private void PatchSubnautica(Harmony harmony)

@@ -364,6 +364,8 @@ namespace Archipelago
 
         public static void Disconnect()
         {
+            PositionPublisher.Unpublish();
+
             Authenticated = false;
             state = State.Menu;
             PositionPublisher.Reset();

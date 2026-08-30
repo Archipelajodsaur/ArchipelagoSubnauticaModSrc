@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Archipelago.MultiClient.Net;
+using Archipelago.MultiClient.Net.Models;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -11,6 +13,7 @@ namespace Archipelago
         private const float HeartbeatInterval = 5.0f;
 
         private static ArchipelagoSession session;
+        private static string positionKey;
         private static Vector3 lastPosition;
         private static float lastAttemptTime;
         private static bool hasAttempted;
@@ -55,12 +58,28 @@ namespace Archipelago
 
             try
             {
-                currentSession.DataStorage[$"LivePosition_{team}_{slot}"] = new JObject
+                var reporterId = ArchipelagoPlugin.PositionReporterId;
+                if (string.IsNullOrWhiteSpace(reporterId))
+                {
+                    Logging.LogError("Could not publish live position: missing reporter ID.", ingame:false);
+                    return;
+                }
+
+                var payload = new JObject
                 {
                     ["x"] = position.x,
                     ["y"] = position.y,
-                    ["z"] = position.z
+                    ["z"] = position.z,
                 };
+                var label = ArchipelagoPlugin.PositionReporterLabel;
+                if (!string.IsNullOrWhiteSpace(label))
+                {
+                    payload["label"] = label;
+                }
+
+                positionKey = $"LivePosition_{team}_{slot}";
+                currentSession.DataStorage[positionKey] = currentSession.DataStorage[positionKey] +
+                    Operation.Update(new Dictionary<string, object> { [reporterId] = payload });
             }
             catch (System.Exception exception)
             {
@@ -71,7 +90,27 @@ namespace Archipelago
         public static void Reset()
         {
             session = null;
+            positionKey = null;
             hasAttempted = false;
+        }
+
+        public static void Unpublish()
+        {
+            if (session == null || session.Socket == null || !session.Socket.Connected ||
+                string.IsNullOrWhiteSpace(positionKey) || string.IsNullOrWhiteSpace(ArchipelagoPlugin.PositionReporterId))
+            {
+                return;
+            }
+
+            try
+            {
+                session.DataStorage[positionKey] = session.DataStorage[positionKey] +
+                    Operation.Pop(ArchipelagoPlugin.PositionReporterId);
+            }
+            catch (System.Exception exception)
+            {
+                Logging.LogError("Could not remove live position: " + exception.Message, ingame:false);
+            }
         }
 
         private static bool IsFinite(float value)
