@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Archipelago.MultiClient.Net;
+using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.Models;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -11,12 +13,14 @@ namespace Archipelago
         private const float MovementThreshold = 2.0f;
         private const float PublishInterval = 0.5f;
         private const float HeartbeatInterval = 5.0f;
+        private const int UnpublishTimeoutMilliseconds = 1000;
 
         private static ArchipelagoSession session;
         private static string positionKey;
         private static Vector3 lastPosition;
         private static float lastAttemptTime;
         private static bool hasAttempted;
+        private static bool hasInitializedPositionStorage;
 
         public static void PublishIfNeeded()
         {
@@ -78,7 +82,13 @@ namespace Archipelago
                 }
 
                 positionKey = $"LivePosition_{team}_{slot}";
-                currentSession.DataStorage[positionKey] = currentSession.DataStorage[positionKey] +
+                var storageElement = currentSession.DataStorage[positionKey];
+                if (!hasInitializedPositionStorage)
+                {
+                    storageElement.Initialize(new JObject());
+                    hasInitializedPositionStorage = true;
+                }
+                currentSession.DataStorage[positionKey] = storageElement +
                     Operation.Update(new Dictionary<string, object> { [reporterId] = payload });
             }
             catch (System.Exception exception)
@@ -92,25 +102,51 @@ namespace Archipelago
             session = null;
             positionKey = null;
             hasAttempted = false;
+            hasInitializedPositionStorage = false;
         }
 
-        public static void Unpublish()
+        public static Task Unpublish()
         {
             if (session == null || session.Socket == null || !session.Socket.Connected ||
                 string.IsNullOrWhiteSpace(positionKey) || string.IsNullOrWhiteSpace(ArchipelagoPlugin.PositionReporterId))
             {
-                return;
+                return Task.CompletedTask;
             }
 
             try
             {
-                session.DataStorage[positionKey] = session.DataStorage[positionKey] +
+                var storageElement = session.DataStorage[positionKey];
+                var reporterId = ArchipelagoPlugin.PositionReporterId;
+                var completion = new TaskCompletionSource<bool>();
+                DataStorageHelper.DataStorageUpdatedHandler handler = null;
+                handler = (oldValue, newValue, arguments) =>
+                {
+                    if (newValue is JObject objectValue && objectValue.Property(reporterId) == null)
+                    {
+                        storageElement.OnValueChanged -= handler;
+                        completion.TrySetResult(true);
+                    }
+                };
+                storageElement.OnValueChanged += handler;
+                session.DataStorage[positionKey] = storageElement +
                     Operation.Pop(ArchipelagoPlugin.PositionReporterId);
+
+                return WaitForUnpublish(completion.Task, storageElement, handler);
             }
             catch (System.Exception exception)
             {
                 Logging.LogError("Could not remove live position: " + exception.Message, ingame:false);
+                return Task.CompletedTask;
             }
+        }
+
+        private static async Task WaitForUnpublish(
+            Task completion,
+            DataStorageElement storageElement,
+            DataStorageHelper.DataStorageUpdatedHandler handler)
+        {
+            await Task.WhenAny(completion, Task.Delay(UnpublishTimeoutMilliseconds));
+            storageElement.OnValueChanged -= handler;
         }
 
         private static bool IsFinite(float value)
